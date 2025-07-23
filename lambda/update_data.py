@@ -7,10 +7,40 @@ from dotenv import load_dotenv
 
 fake = Faker()
 fake.add_provider(Provider)
+fake.locale = "pt_BR"  # Definindo o locale para português do Brasil
 
 
 def insert_fake_data(cursor):
     # Inserir clientes
+
+    try:
+        cursor.execute("SELECT MAX(id) FROM clientes")
+        max_cliente_id = cursor.fetchone()[0] or 1
+    except pymysql.Error as e:
+        print(f"Erro ao obter o ID máximo de clientes: {e}")
+        max_cliente_id = 1
+
+    try:
+        cursor.execute("SELECT MAX(id) FROM produtos")
+        max_produto_id = cursor.fetchone()[0] or 1
+    except pymysql.Error as e:
+        print(f"Erro ao obter o ID máximo de produtos: {e}")
+        max_produto_id = 1
+
+    try:
+        cursor.execute("SELECT MAX(id) FROM vendas")
+        max_venda_id = cursor.fetchone()[0] or 1
+    except pymysql.Error as e:
+        print(f"Erro ao obter o ID máximo de vendas: {e}")
+        max_venda_id = 1
+
+    try:
+        cursor.execute("SELECT MIN(id) FROM vendas")
+        min_venda_id = cursor.fetchone()[0] or 1
+    except pymysql.Error as e:
+        print(f"Erro ao obter o ID mínimo de vendas: {e}")
+        min_venda_id = 1
+
     for _ in range(5):
         cursor.execute(
             "INSERT INTO clientes (nome, email, cidade, estado) VALUES (%s, %s, %s, %s)",
@@ -18,14 +48,14 @@ def insert_fake_data(cursor):
         )
 
     # Inserir produtos
-    for _ in range(1):
+    for _ in range(2):
         cursor.execute(
             "INSERT INTO produtos (nome, categoria, preco, em_estoque) VALUES (%s, %s, %s, %s)",
             (
-                fake.product_name(),
-                fake.category(),
+                fake.ecommerce_name(),  # Era fake.product()
+                fake.ecommerce_category(),  # Era fake.category()
                 round(fake.random_number(digits=2), 2),
-                fake.random_boolean(),
+                fake.random_int(min=0, max=1),
             ),
         )
 
@@ -34,7 +64,7 @@ def insert_fake_data(cursor):
         cursor.execute(
             "INSERT INTO vendas (cliente_id, data_venda, total) VALUES (%s, %s, %s)",
             (
-                fake.random_int(min=1, max=5),
+                fake.random_int(min=1, max=max_cliente_id),
                 fake.date_this_year(),
                 round(fake.random_number(digits=2), 2),
             ),
@@ -45,8 +75,8 @@ def insert_fake_data(cursor):
         cursor.execute(
             "INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unit) VALUES (%s, %s, %s, %s)",
             (
-                fake.random_int(min=1, max=5),
-                fake.random_int(min=1, max=20),
+                fake.random_int(min=min_venda_id, max=max_venda_id),
+                fake.random_int(min=1, max=max_produto_id),
                 fake.random_int(min=1, max=5),
                 round(fake.random_number(digits=2), 2),
             ),
@@ -68,7 +98,7 @@ def lambda_handler(event, context):
     }
 
     if not db_config["host"]:
-        with open("../terraform/db_host.txt", "r") as file:
+        with open("./db_host.txt", "r") as file:
             db_config["host"] = file.read().strip()
 
     if not db_config["user"] or not db_config["password"]:
