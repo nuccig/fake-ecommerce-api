@@ -40,19 +40,19 @@ data "archive_file" "lambda_update_data" {
   source_dir  = "${path.module}/../lambda/package"
   output_path = "${path.module}/../lambda/update_data.zip"
 
-  depends_on = [null_resource.lambda_dependencies]
+  depends_on = [terraform_data.lambda_dependencies]
 }
 
 # Install Python dependencies
-resource "null_resource" "lambda_dependencies" {
-  triggers = {
+resource "terraform_data" "lambda_dependencies" {
+  triggers_replace = {
     requirements = filemd5("${path.module}/../lambda/requirements.txt")
     source_code  = filemd5("${path.module}/../lambda/update_data.py")
   }
 
   provisioner "local-exec" {
     working_dir = "${path.module}/../lambda"
-    command = "rm -rf package && mkdir -p package && pip install -r requirements.txt -t package/ && cp update_data.py package/"
+    command     = "rm -rf package && mkdir -p package && pip install -r requirements.txt -t package/ && cp update_data.py package/ && cp ../terraform/db_host.txt package/"
   }
 }
 
@@ -67,11 +67,17 @@ resource "aws_lambda_function" "lambda_update_data" {
   runtime = "python3.9"
   timeout = 300
 
+  # Configuração VPC para acessar RDS
+  vpc_config {
+    subnet_ids         = aws_subnet.public[*].id
+    security_group_ids = [aws_security_group.lambda_sg.id]
+  }
+
   environment {
     variables = {
       ENVIRONMENT = "production"
       LOG_LEVEL   = "info"
-      DB_HOST     = file("${path.module}/db_host.txt")
+      DB_HOST     = data.aws_db_instance.db_ecommerce.address
       DB_USER     = var.db_access.username
       DB_PASSWORD = var.db_access.password
       DB_NAME     = var.db_name
@@ -80,6 +86,7 @@ resource "aws_lambda_function" "lambda_update_data" {
 
   depends_on = [
     aws_iam_role_policy_attachment.lambda_logs,
+    aws_iam_role_policy_attachment.lambda_vpc,
     aws_cloudwatch_log_group.lambda_logs
   ]
 
@@ -93,7 +100,7 @@ resource "aws_lambda_function" "lambda_update_data" {
 resource "aws_cloudwatch_event_rule" "lambda_schedule" {
   name                = "lambda-update-data-schedule"
   description         = "Trigger lambda daily"
-  schedule_expression = "rate(1 day)"
+  schedule_expression = "cron(0 3 * * ? *)" # 3 AM UTC daily, meia noite no Brasil
 
   tags = {
     Environment = "production"
@@ -114,4 +121,44 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
   function_name = aws_lambda_function.lambda_update_data.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
+}
+
+# Security Group para Lambda
+resource "aws_security_group" "lambda_sg" {
+  name_prefix = "lambda-sg-"
+  vpc_id      = aws_vpc.main.id
+
+  # Permitir saída para RDS (MySQL) usando CIDR da VPC
+  egress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  # Permitir saída para internet (HTTPS) - para acessar AWS APIs
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Permitir saída HTTP (caso necessário)
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "lambda-security-group"
+  }
+}
+
+# IAM policy para VPC
+resource "aws_iam_role_policy_attachment" "lambda_vpc" {
+  role       = aws_iam_role.lambda_update_data.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }

@@ -26,12 +26,12 @@ data "http" "myip" {
   url = "http://ipv4.icanhazip.com"
 }
 
-# Security Group com seu IP específico
+# Security Group do RDS
 resource "aws_security_group" "rds" {
   name_prefix = "ecommerce-rds-"
   vpc_id      = aws_vpc.main.id
 
-  # Acesso da VPC
+  # Acesso da VPC inteira (inclui Lambda nas subnets privadas)
   ingress {
     from_port   = 3306
     to_port     = 3306
@@ -65,7 +65,7 @@ data "aws_db_instance" "db_ecommerce" {
   depends_on             = [aws_db_instance.db_ecommerce]
 }
 
-resource "null_resource" "init_db" {
+resource "terraform_data" "init_db" {
   depends_on = [aws_db_instance.db_ecommerce]
 
   provisioner "local-exec" {
@@ -78,7 +78,7 @@ resource "null_resource" "init_db" {
     }
   }
 
-  triggers = {
+  triggers_replace = {
     db_instance_id = aws_db_instance.db_ecommerce.id
     # timestamp      = timestamp()
   }

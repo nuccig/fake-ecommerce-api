@@ -3,7 +3,7 @@ output "host_db" {
   value       = aws_db_instance.db_ecommerce.address
 }
 
-resource "null_resource" "get_db_host" {
+resource "terraform_data" "get_db_host" {
   depends_on = [aws_db_instance.db_ecommerce]
 
   provisioner "local-exec" {
