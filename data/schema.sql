@@ -1,9 +1,9 @@
 -- schema_mysql.sql
-DROP TABLE IF EXISTS itens_venda;
-DROP TABLE IF EXISTS vendas;
-DROP TABLE IF EXISTS produtos;
-DROP TABLE IF EXISTS clientes;
-CREATE TABLE clientes (
+-- DROP TABLE IF EXISTS itens_venda;
+-- DROP TABLE IF EXISTS vendas;
+-- DROP TABLE IF EXISTS produtos;
+-- DROP TABLE IF EXISTS clientes;
+CREATE TABLE IF NOT EXISTS clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -11,21 +11,21 @@ CREATE TABLE clientes (
     estado VARCHAR(2),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE produtos (
+CREATE TABLE IF NOT EXISTS produtos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     categoria VARCHAR(50),
     preco DECIMAL(10, 2) NOT NULL,
     em_estoque BOOLEAN DEFAULT true
 );
-CREATE TABLE vendas (
+CREATE TABLE IF NOT EXISTS vendas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT NOT NULL,
     data_venda DATE NOT NULL,
     total DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
-CREATE TABLE itens_venda (
+CREATE TABLE IF NOT EXISTS itens_venda (
     id INT AUTO_INCREMENT PRIMARY KEY,
     venda_id INT NOT NULL,
     produto_id INT NOT NULL,
