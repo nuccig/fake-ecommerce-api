@@ -27,7 +27,7 @@ def init_database():
 
         print(f"Connecting to: {db_host}:{3306}/{db_name} as {db_user}")
 
-        # Conectar ao MySQL
+        # Conecta ao MySQL
         connection = mysql.connector.connect(
             host=db_host,
             database=db_name,
@@ -39,15 +39,37 @@ def init_database():
         if connection.is_connected():
             cursor = connection.cursor()
 
-            # Ler e executar o schema
-            with open("../data/schema.sql", "r", encoding="utf-8") as file:
+            # Le e executar o schema
+            with open("schema.sql", "r", encoding="utf-8") as file:
                 schema = file.read()
 
-            # Executar comandos SQL
-            for statement in schema.split(";"):
-                statement = statement.strip()
-                if statement and not statement.startswith("--"):
-                    cursor.execute(statement)
+            # Executa comandos SQL
+            statements = []
+            current_statement = ""
+
+            for line in schema.split("\n"):
+                line = line.strip()
+                # Ignora linhas vazias e comentários
+                if not line or line.startswith("--"):
+                    continue
+
+                current_statement += " " + line
+
+                # Se a linha termina com ; é o fim de um comando
+                if line.endswith(";"):
+                    statements.append(current_statement.strip())
+                    current_statement = ""
+
+            # Executa cada comando separadamente
+            for statement in statements:
+                if statement:
+                    try:
+                        print(f"Executando: {statement[:50]}...")
+                        cursor.execute(statement)
+                        print("Comando executado com sucesso")
+                    except Error as e:
+                        print(f"Erro ao executar comando: {e}")
+                        print(f"Comando: {statement}")
 
             connection.commit()
             print("Database iniciado com sucesso!")

@@ -51,6 +51,7 @@ resource "terraform_data" "init_db" {
   triggers_replace = {
     db_instance_id = aws_db_instance.db_ecommerce.id
     schema_hash    = filemd5("${path.module}/../data/schema.sql")
+    init_db        = filemd5("${path.module}/../data/init_db.py")
     # timestamp      = timestamp()
   }
 }

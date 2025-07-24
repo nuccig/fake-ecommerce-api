@@ -1,8 +1,8 @@
 import json
-import pymysql
+import pymysql  # type: ignore
 import os
-from faker import Faker
-from dotenv import load_dotenv
+from faker import Faker  # type: ignore
+from dotenv import load_dotenv  # type: ignore
 import random
 from datetime import datetime
 
@@ -68,7 +68,18 @@ class Generator:
             "logradouro": fake.street_name(),
             "numero": fake.building_number(),
             "complemento": (
-                fake.secondary_address() if random.choice([True, False]) else None
+                random.choice(
+                    [
+                        f"Apto {random.randint(1, 999)}",
+                        f"Bloco {random.choice(['A', 'B', 'C', 'D'])}",
+                        f"Casa {random.randint(1, 20)}",
+                        f"Sala {random.randint(101, 999)}",
+                        "Fundos",
+                        "Térreo",
+                    ]
+                )
+                if random.choice([True, False])
+                else None
             ),
             "bairro": fake.neighborhood(),
             "cidade": fake.city(),
@@ -164,13 +175,6 @@ def insert_fake_data(cursor):
     except pymysql.Error as e:
         print(f"Erro ao obter o ID máximo de categorias: {e}")
         max_categoria_id = 0
-
-    try:
-        cursor.execute("SELECT MAX(id) FROM produtos")
-        max_produto_id = cursor.fetchone()[0] or 0
-    except pymysql.Error as e:
-        print(f"Erro ao obter o ID máximo de produtos: {e}")
-        max_produto_id = 0
 
     # 1. Inserir categorias iniciais (apenas se for primeira execução)
     if max_categoria_id == 0:
@@ -303,11 +307,18 @@ def insert_fake_data(cursor):
     num_novos_produtos = random.randint(2, 5)
     print(f"Adicionando {num_novos_produtos} novos produtos...")
 
-    if max_categoria_id > 0 and max_fornecedor_id > 0:
+    # Buscar IDs reais das categorias e fornecedores ativos
+    cursor.execute("SELECT id FROM categorias WHERE ativa = TRUE")
+    categorias_ativas = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute("SELECT id FROM fornecedores WHERE ativo = TRUE")
+    fornecedores_ativos = [row[0] for row in cursor.fetchall()]
+
+    if categorias_ativas and fornecedores_ativos:
         for _ in range(num_novos_produtos):
             produto = generator.gerar_produto(
-                categoria_id=random.randint(1, max_categoria_id),
-                fornecedor_id=random.randint(1, max_fornecedor_id),
+                categoria_id=random.choice(categorias_ativas),
+                fornecedor_id=random.choice(fornecedores_ativos),
             )
             cursor.execute(
                 """
@@ -328,6 +339,8 @@ def insert_fake_data(cursor):
                 ),
             )
             novos_produtos.append(cursor.lastrowid)
+    else:
+        print("Erro: Não há categorias ou fornecedores ativos para criar produtos")
 
     # 7. EXECUÇÃO DIÁRIA: Vendas do dia (5-15 vendas por dia)
     novos_vendas = []
@@ -338,7 +351,11 @@ def insert_fake_data(cursor):
     cursor.execute("SELECT id FROM clientes")
     todos_clientes = [row[0] for row in cursor.fetchall()]
 
-    if todos_clientes and max_produto_id > 0:
+    # Verificar se há produtos ativos para venda
+    cursor.execute("SELECT COUNT(*) FROM produtos WHERE ativo = TRUE")
+    produtos_ativos_count = cursor.fetchone()[0]
+
+    if todos_clientes and produtos_ativos_count > 0:
         for _ in range(num_vendas):
             # Clientes novos têm maior probabilidade de comprar (simulando campanhas)
             if novos_clientes and random.random() < 0.4:
@@ -373,32 +390,39 @@ def insert_fake_data(cursor):
                 ),
             )
             novos_vendas.append(cursor.lastrowid)
+    else:
+        print("Aviso: Não há clientes ou produtos ativos suficientes para criar vendas")
 
     # 8. Inserir itens para cada venda
-    todos_produtos = list(range(1, max_produto_id + 1)) + novos_produtos
+    # Buscar IDs reais dos produtos ativos (incluindo os recém-criados)
+    cursor.execute("SELECT id FROM produtos WHERE ativo = TRUE")
+    todos_produtos = [row[0] for row in cursor.fetchall()]
 
-    for venda_id in novos_vendas:
-        # Cada venda terá 1-4 produtos diferentes
-        num_itens = random.randint(1, 4)
-        produtos_na_venda = random.sample(
-            todos_produtos, min(num_itens, len(todos_produtos))
-        )
-
-        for produto_id in produtos_na_venda:
-            item_venda = generator.gerar_item_venda(venda_id, produto_id)
-            cursor.execute(
-                """
-                INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario, subtotal) 
-                VALUES (%s, %s, %s, %s, %s)
-            """,
-                (
-                    item_venda["venda_id"],
-                    item_venda["produto_id"],
-                    item_venda["quantidade"],
-                    item_venda["preco_unitario"],
-                    item_venda["subtotal"],
-                ),
+    if todos_produtos:
+        for venda_id in novos_vendas:
+            # Cada venda terá 1-4 produtos diferentes
+            num_itens = random.randint(1, 4)
+            produtos_na_venda = random.sample(
+                todos_produtos, min(num_itens, len(todos_produtos))
             )
+
+            for produto_id in produtos_na_venda:
+                item_venda = generator.gerar_item_venda(venda_id, produto_id)
+                cursor.execute(
+                    """
+                    INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario, subtotal) 
+                    VALUES (%s, %s, %s, %s, %s)
+                """,
+                    (
+                        item_venda["venda_id"],
+                        item_venda["produto_id"],
+                        item_venda["quantidade"],
+                        item_venda["preco_unitario"],
+                        item_venda["subtotal"],
+                    ),
+                )
+    else:
+        print("Aviso: Não há produtos ativos para criar itens de venda")
 
     print(
         f"RESUMO DO DIA: {len(novos_clientes)} novos clientes, {len(novos_produtos)} novos produtos, {len(novos_vendas)} vendas realizadas"

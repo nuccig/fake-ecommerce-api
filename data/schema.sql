@@ -1,13 +1,13 @@
 -- schema_mysql.sql - E-commerce Simplificado
--- DROP TABLE IF EXISTS itens_carrinho;
--- DROP TABLE IF EXISTS carrinho;
--- DROP TABLE IF EXISTS itens_venda;
--- DROP TABLE IF EXISTS vendas;
--- DROP TABLE IF EXISTS produtos;
--- DROP TABLE IF EXISTS categorias;
--- DROP TABLE IF EXISTS enderecos;
--- DROP TABLE IF EXISTS clientes;
--- DROP TABLE IF EXISTS fornecedores;
+DROP TABLE IF EXISTS itens_carrinho;
+DROP TABLE IF EXISTS carrinho;
+DROP TABLE IF EXISTS itens_venda;
+DROP TABLE IF EXISTS vendas;
+DROP TABLE IF EXISTS produtos;
+DROP TABLE IF EXISTS categorias;
+DROP TABLE IF EXISTS enderecos;
+DROP TABLE IF EXISTS clientes;
+DROP TABLE IF EXISTS fornecedores;
 -- Tabela de Fornecedores
 CREATE TABLE IF NOT EXISTS fornecedores (
     id INT AUTO_INCREMENT PRIMARY KEY,
