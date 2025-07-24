@@ -21,50 +21,13 @@ resource "aws_db_instance" "db_ecommerce" {
   }
 }
 
-# Obter seu IP atual
-data "http" "myip" {
-  url = "http://ipv4.icanhazip.com"
-}
-
-# Security Group do RDS
-resource "aws_security_group" "rds" {
-  name_prefix = "ecommerce-rds-"
-  vpc_id      = aws_vpc.main.id
-
-  # Acesso da VPC inteira (inclui Lambda nas subnets privadas)
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  # Seu IP específico para DBeaver
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "ecommerce-rds-sg"
-  }
-}
-
-# Usar data source para obter endpoint
+# Usar data source para obter endpoint e passar para a lambda
 data "aws_db_instance" "db_ecommerce" {
   db_instance_identifier = aws_db_instance.db_ecommerce.id
   depends_on             = [aws_db_instance.db_ecommerce]
 }
 
+# Executa um script local para inicializar o banco de dados
 resource "terraform_data" "init_db" {
   depends_on = [aws_db_instance.db_ecommerce]
 

@@ -209,10 +209,7 @@ __marimo__/
 .terraform
 .terraform.lock.hcl
 
-plan.out
-
+*plan.out
 db_host.txt
-
 lambda/package/*
-
 update_data.zip

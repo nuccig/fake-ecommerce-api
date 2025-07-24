@@ -1,40 +1,4 @@
-# IAM role for Lambda execution
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role" "lambda_update_data" {
-  name               = "lambda_execution_role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
-}
-
-# Attach CloudWatch logs policy
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = aws_iam_role.lambda_update_data.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "lambda_logs" {
-  name              = "/aws/lambda/lambda_update_data"
-  retention_in_days = 14
-
-  tags = {
-    Environment = "production"
-    Application = "lambda_update_data"
-  }
-}
-
-# Package the Lambda function code with dependencies
+#Empacotando o código em m zip que vai subir para o Lambda
 data "archive_file" "lambda_update_data" {
   type        = "zip"
   source_dir  = "${path.module}/../lambda/package"
@@ -45,24 +9,26 @@ data "archive_file" "lambda_update_data" {
 
 # Install Python dependencies
 resource "terraform_data" "lambda_dependencies" {
+  #Trigger que monitora mudanças nos arquivos de dependências
   triggers_replace = {
     requirements = filemd5("${path.module}/../lambda/requirements.txt")
     source_code  = filemd5("${path.module}/../lambda/update_data.py")
   }
-
+  # Script que roda localmente e 'empacota' todo o script com as dependências
   provisioner "local-exec" {
     working_dir = "${path.module}/../lambda"
     command     = "rm -rf package && mkdir -p package && pip install -r requirements.txt -t package/ && cp update_data.py package/ && cp ../terraform/db_host.txt package/"
   }
 }
 
-# Lambda function
+# Criação da Lambda
 resource "aws_lambda_function" "lambda_update_data" {
-  filename         = data.archive_file.lambda_update_data.output_path
+  filename         = data.archive_file.lambda_update_data.output_path #Arquivo usado para executar a função
+  description      = "Lambda function to update data in the database"
   function_name    = "lambda_update_data"
   role             = aws_iam_role.lambda_update_data.arn
   handler          = "update_data.lambda_handler"
-  source_code_hash = data.archive_file.lambda_update_data.output_base64sha256
+  source_code_hash = data.archive_file.lambda_update_data.output_base64sha256 # Verifica se o código foi alterado
 
   runtime = "python3.9"
   timeout = 300
@@ -91,74 +57,6 @@ resource "aws_lambda_function" "lambda_update_data" {
   ]
 
   tags = {
-    Environment = "production"
     Application = "lambda_update_data"
   }
-}
-
-# CloudWatch Event Rule para trigger diário
-resource "aws_cloudwatch_event_rule" "lambda_schedule" {
-  name                = "lambda-update-data-schedule"
-  description         = "Trigger lambda daily"
-  schedule_expression = "cron(0 3 * * ? *)" # 3 AM UTC daily, meia noite no Brasil
-
-  tags = {
-    Environment = "production"
-  }
-}
-
-# CloudWatch Event Target
-resource "aws_cloudwatch_event_target" "lambda_target" {
-  rule      = aws_cloudwatch_event_rule.lambda_schedule.name
-  target_id = "TriggerLambdaUpdateData"
-  arn       = aws_lambda_function.lambda_update_data.arn
-}
-
-# Lambda permission for CloudWatch Events
-resource "aws_lambda_permission" "allow_cloudwatch" {
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_update_data.function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
-}
-
-# Security Group para Lambda
-resource "aws_security_group" "lambda_sg" {
-  name_prefix = "lambda-sg-"
-  vpc_id      = aws_vpc.main.id
-
-  # Permitir saída para RDS (MySQL) usando CIDR da VPC
-  egress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  # Permitir saída para internet (HTTPS) - para acessar AWS APIs
-  egress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Permitir saída HTTP (caso necessário)
-  egress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "lambda-security-group"
-  }
-}
-
-# IAM policy para VPC
-resource "aws_iam_role_policy_attachment" "lambda_vpc" {
-  role       = aws_iam_role.lambda_update_data.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }

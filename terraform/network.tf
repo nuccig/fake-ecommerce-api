@@ -1,4 +1,7 @@
-# Criar VPC
+#######################
+# VPC 
+#######################
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -9,7 +12,9 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Internet Gateway
+#######################
+# IGW 
+#######################
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -18,7 +23,9 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# Subnets públicas
+#######################
+# Subnets 
+#######################
 resource "aws_subnet" "public" {
   count             = 2
   vpc_id            = aws_vpc.main.id
@@ -30,6 +37,11 @@ resource "aws_subnet" "public" {
   tags = {
     Name = "ecommerce-public-subnet-${count.index + 1}"
   }
+}
+
+# Para criação em subnets com áreas diferentes e disponíveis
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 # Subnets privadas para RDS
@@ -44,7 +56,9 @@ resource "aws_subnet" "private" {
   }
 }
 
-# Route table
+#######################
+# Route Table 
+#######################
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -64,16 +78,14 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# DB Subnet Group - ALTERAR para subnets públicas
+#######################
+# Subnet pública do RDS 
+#######################
 resource "aws_db_subnet_group" "main" {
   name       = "ecommerce-db-subnet-group"
-  subnet_ids = aws_subnet.public[*].id # Mudar de private para public
+  subnet_ids = aws_subnet.public[*].id
 
   tags = {
     Name = "ecommerce-db-subnet-group"
   }
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
 }
