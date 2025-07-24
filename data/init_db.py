@@ -1,9 +1,9 @@
 # init_db.py
 
 import os
-import mysql.connector
-from mysql.connector import Error
-from dotenv import load_dotenv
+import mysql.connector  # type: ignore
+from mysql.connector import Error  # type: ignore
+from dotenv import load_dotenv  # type: ignore
 
 
 def init_database():
@@ -13,7 +13,7 @@ def init_database():
 
         db_host = os.getenv("DB_HOST")
         db_user = os.getenv("DB_USER")
-        db_password = os.getenv("DB_PASSWORD")  # Note: DB_PASS, não DB_PASSWORD
+        db_password = os.getenv("DB_PASSWORD")
         db_name = os.getenv("DB_NAME", "ecommerce")
 
         # Se DB_HOST não estiver definido, ler do arquivo (fallback)
@@ -22,7 +22,7 @@ def init_database():
                 db_host = file.read().strip()
 
         if not db_user or not db_password:
-            print("Error: DB_USER and DB_PASS environment variables must be set")
+            print("Error: DB_USER and DB_PASS environment devem ser definidos")
             return
 
         print(f"Connecting to: {db_host}:{3306}/{db_name} as {db_user}")
@@ -50,12 +50,12 @@ def init_database():
                     cursor.execute(statement)
 
             connection.commit()
-            print("Database initialized successfully!")
+            print("Database iniciado com sucesso!")
 
     except Error as e:
         print(f"Error: {e}")
     except FileNotFoundError:
-        print("Error: db_host.txt file not found")
+        print("Error: db_host.txt arquivo não encontrado")
     finally:
         if connection.is_connected():
             cursor.close()

@@ -1,5 +1,4 @@
 Faker==37.4.2
-faker-commerce==1.0.4
 tzdata==2025.2
 PyMySQL==1.1.0
 python-dotenv==1.1.1
