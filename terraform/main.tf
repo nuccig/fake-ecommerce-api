@@ -4,6 +4,18 @@ terraform {
       source  = "hashicorp/aws"
       version = "6.4.0"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = "3.5.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.13.1"
+    }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "2.7.1"
+    }
   }
 
   backend "s3" {
@@ -24,4 +36,13 @@ provider "aws" {
       Owner       = "Gustavo Nucci"
     }
   }
+}
+
+provider "time" {
+}
+
+provider "http" {
+}
+
+provider "archive" {
 }

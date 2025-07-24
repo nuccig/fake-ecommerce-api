@@ -27,22 +27,30 @@ data "aws_db_instance" "db_ecommerce" {
   depends_on             = [aws_db_instance.db_ecommerce]
 }
 
+resource "time_sleep" "wait_for_db" {
+  depends_on      = [aws_db_instance.db_ecommerce]
+  create_duration = "90s"
+}
+
 # Executa um script local para inicializar o banco de dados
 resource "terraform_data" "init_db" {
-  depends_on = [aws_db_instance.db_ecommerce]
+  depends_on = [aws_db_instance.db_ecommerce, time_sleep.wait_for_db]
 
   provisioner "local-exec" {
-    command = "python ../data/init_db.py"
+    working_dir = "${path.module}/../data"
+    command     = "python init_db.py"
+
     environment = {
-      DB_HOST = data.aws_db_instance.db_ecommerce.address
-      DB_NAME = var.db_name
-      DB_USER = var.db_access.username
-      DB_PASS = var.db_access.password
+      DB_HOST     = data.aws_db_instance.db_ecommerce.address
+      DB_NAME     = var.db_name
+      DB_USER     = var.db_access.username
+      DB_PASSWORD = var.db_access.password
     }
   }
 
   triggers_replace = {
     db_instance_id = aws_db_instance.db_ecommerce.id
+    schema_hash    = filemd5("${path.module}/../data/schema.sql")
     # timestamp      = timestamp()
   }
 }
