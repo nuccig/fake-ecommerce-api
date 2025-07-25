@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     Configurações da aplicação Fake Ecommerce API.
     """
 
+    APP_NAME: str = "Fake E-commerce API"
+    APP_VERSION: str = "1.0.0"
+    DEBUG: bool = False
+
     DB_HOST: str = (
         "terraform-20250724042256770800000002.csdsw6cyc9qd.us-east-1.rds.amazonaws.com"
     )
