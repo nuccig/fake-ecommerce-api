@@ -1,10 +1,11 @@
 import json
-import pymysql  # type: ignore
 import os
-from faker import Faker  # type: ignore
-from dotenv import load_dotenv  # type: ignore
 import random
 from datetime import datetime
+
+import pymysql  # type: ignore
+from dotenv import load_dotenv  # type: ignore
+from faker import Faker  # type: ignore
 
 fake = Faker("pt_BR")
 
@@ -161,7 +162,6 @@ class Generator:
 def insert_fake_data(cursor):
     generator = Generator()
 
-    # Obter IDs máximos existentes para referenciar dados já existentes
     try:
         cursor.execute("SELECT MAX(id) FROM fornecedores")
         max_fornecedor_id = cursor.fetchone()[0] or 0
@@ -176,7 +176,6 @@ def insert_fake_data(cursor):
         print(f"Erro ao obter o ID máximo de categorias: {e}")
         max_categoria_id = 0
 
-    # 1. Inserir categorias iniciais (apenas se for primeira execução)
     if max_categoria_id == 0:
         print("Primeira execução: criando categorias iniciais...")
         categorias_unicas = set()
@@ -198,7 +197,6 @@ def insert_fake_data(cursor):
         cursor.execute("SELECT MAX(id) FROM categorias")
         max_categoria_id = cursor.fetchone()[0] or 0
 
-    # 2. Inserir fornecedores iniciais (apenas se for primeira execução)
     if max_fornecedor_id == 0:
         print("Primeira execução: criando fornecedores iniciais...")
         for _ in range(5):
@@ -227,7 +225,6 @@ def insert_fake_data(cursor):
         cursor.execute("SELECT MAX(id) FROM fornecedores")
         max_fornecedor_id = cursor.fetchone()[0] or 0
 
-    # 3. EXECUÇÃO DIÁRIA: Novos fornecedores (probabilidade 20%)
     if random.random() < 0.2:
         print("Adicionando novo fornecedor...")
         fornecedor = generator.gerar_fornecedor()
@@ -253,7 +250,6 @@ def insert_fake_data(cursor):
         except pymysql.IntegrityError:
             pass
 
-    # 4. EXECUÇÃO DIÁRIA: Novos clientes (3-8 por dia)
     novos_clientes = []
     num_novos_clientes = random.randint(3, 8)
     print(f"Registrando {num_novos_clientes} novos clientes...")
@@ -281,7 +277,6 @@ def insert_fake_data(cursor):
             # Email ou CPF já existe, tentar novamente
             pass
 
-    # 5. Inserir endereços para novos clientes
     for cliente_id in novos_clientes:
         endereco = generator.gerar_endereco(cliente_id)
         cursor.execute(
@@ -302,12 +297,10 @@ def insert_fake_data(cursor):
             ),
         )
 
-    # 6. EXECUÇÃO DIÁRIA: Novos produtos (2-5 por dia)
     novos_produtos = []
     num_novos_produtos = random.randint(2, 5)
     print(f"Adicionando {num_novos_produtos} novos produtos...")
 
-    # Buscar IDs reais das categorias e fornecedores ativos
     cursor.execute("SELECT id FROM categorias WHERE ativa = TRUE")
     categorias_ativas = [row[0] for row in cursor.fetchall()]
 
@@ -342,16 +335,13 @@ def insert_fake_data(cursor):
     else:
         print("Erro: Não há categorias ou fornecedores ativos para criar produtos")
 
-    # 7. EXECUÇÃO DIÁRIA: Vendas do dia (5-15 vendas por dia)
     novos_vendas = []
     num_vendas = random.randint(5, 15)
     print(f"Processando {num_vendas} vendas de hoje...")
 
-    # Obter todos os clientes disponíveis (incluindo antigos e novos)
     cursor.execute("SELECT id FROM clientes")
     todos_clientes = [row[0] for row in cursor.fetchall()]
 
-    # Verificar se há produtos ativos para venda
     cursor.execute("SELECT COUNT(*) FROM produtos WHERE ativo = TRUE")
     produtos_ativos_count = cursor.fetchone()[0]
 
@@ -393,8 +383,6 @@ def insert_fake_data(cursor):
     else:
         print("Aviso: Não há clientes ou produtos ativos suficientes para criar vendas")
 
-    # 8. Inserir itens para cada venda
-    # Buscar IDs reais dos produtos ativos (incluindo os recém-criados)
     cursor.execute("SELECT id FROM produtos WHERE ativo = TRUE")
     todos_produtos = [row[0] for row in cursor.fetchall()]
 
@@ -428,7 +416,6 @@ def insert_fake_data(cursor):
         f"RESUMO DO DIA: {len(novos_clientes)} novos clientes, {len(novos_produtos)} novos produtos, {len(novos_vendas)} vendas realizadas"
     )
 
-    # Retornar métricas para o lambda_handler
     return {
         "novos_clientes": len(novos_clientes),
         "novos_produtos": len(novos_produtos),
@@ -479,7 +466,6 @@ def lambda_handler(event, context):
                 ),
             }
 
-    # Valida as configurações obrigatórias
     if not db_config["host"]:
         print("Erro: DB_HOST não configurado")
         return {
@@ -502,25 +488,19 @@ def lambda_handler(event, context):
     cursor = None
 
     try:
-        # Conecta ao banco com timeout
         connection = pymysql.connect(**db_config)
         cursor = connection.cursor()
 
-        # Teste de conexão
         cursor.execute("SELECT 1")
         print("Conexão com banco estabelecida com sucesso")
 
-        # Inserir dados fake com controle de transação
         dados_inseridos = insert_fake_data(cursor)
 
-        # Commit apenas se tudo ocorreu certo
         connection.commit()
         print("Transação commitada com sucesso")
 
-        # Calcula tempo de execução
         execution_time = (datetime.now() - start_time).total_seconds()
 
-        # Resposta de sucesso com métricas
         response_body = {
             "message": "Dados inseridos com sucesso!",
             "timestamp": datetime.now().isoformat(),
@@ -542,7 +522,6 @@ def lambda_handler(event, context):
         error_msg = f"Erro MySQL: {str(e)}"
         print(error_msg)
 
-        # Rollback em caso de erro
         if connection:
             try:
                 connection.rollback()
@@ -567,7 +546,6 @@ def lambda_handler(event, context):
         error_msg = f"Erro geral: {str(e)}"
         print(error_msg)
 
-        # Rollback em caso de erro
         if connection:
             try:
                 connection.rollback()

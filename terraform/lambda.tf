@@ -1,4 +1,3 @@
-#Empacotando o código em m zip que vai subir para o Lambda
 data "archive_file" "lambda_update_data" {
   type        = "zip"
   source_dir  = "${path.module}/../lambda/package"
@@ -7,21 +6,19 @@ data "archive_file" "lambda_update_data" {
   depends_on = [terraform_data.lambda_dependencies]
 }
 
-# Install Python dependencies
 resource "terraform_data" "lambda_dependencies" {
-  #Trigger que monitora mudanças nos arquivos de dependências
+
   triggers_replace = {
     requirements = filemd5("${path.module}/../lambda/requirements.txt")
     source_code  = filemd5("${path.module}/../lambda/update_data.py")
   }
-  # Script que roda localmente e 'empacota' todo o script com as dependências
+
   provisioner "local-exec" {
     working_dir = "${path.module}/../lambda"
     command     = "rm -rf package && mkdir -p package && pip install -r requirements.txt -t package/ && cp update_data.py package/ && cp ../terraform/db_host.txt package/"
   }
 }
 
-# Criação da Lambda
 resource "aws_lambda_function" "lambda_update_data" {
   filename         = data.archive_file.lambda_update_data.output_path #Arquivo usado para executar a função
   description      = "Lambda function to update data in the database"
@@ -33,7 +30,6 @@ resource "aws_lambda_function" "lambda_update_data" {
   runtime = "python3.9"
   timeout = 300
 
-  # Configuração VPC para acessar RDS
   vpc_config {
     subnet_ids         = aws_subnet.public[*].id
     security_group_ids = [aws_security_group.lambda_sg.id]

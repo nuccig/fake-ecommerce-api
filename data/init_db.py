@@ -1,9 +1,10 @@
 # init_db.py
 
 import os
+
 import mysql.connector  # type: ignore
-from mysql.connector import Error  # type: ignore
 from dotenv import load_dotenv  # type: ignore
+from mysql.connector import Error  # type: ignore
 
 
 def init_database():
@@ -49,18 +50,15 @@ def init_database():
 
             for line in schema.split("\n"):
                 line = line.strip()
-                # Ignora linhas vazias e comentários
                 if not line or line.startswith("--"):
                     continue
 
                 current_statement += " " + line
 
-                # Se a linha termina com ; é o fim de um comando
                 if line.endswith(";"):
                     statements.append(current_statement.strip())
                     current_statement = ""
 
-            # Executa cada comando separadamente
             for statement in statements:
                 if statement:
                     try:

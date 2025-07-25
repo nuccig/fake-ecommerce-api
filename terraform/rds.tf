@@ -13,7 +13,6 @@ resource "aws_db_instance" "db_ecommerce" {
 
   vpc_security_group_ids = [aws_security_group.rds.id]
 
-  # Força recriação quando subnet group muda
   lifecycle {
     replace_triggered_by = [
       aws_db_subnet_group.main
@@ -21,7 +20,6 @@ resource "aws_db_instance" "db_ecommerce" {
   }
 }
 
-# Usar data source para obter endpoint e passar para a lambda
 data "aws_db_instance" "db_ecommerce" {
   db_instance_identifier = aws_db_instance.db_ecommerce.id
   depends_on             = [aws_db_instance.db_ecommerce]
@@ -32,7 +30,6 @@ resource "time_sleep" "wait_for_db" {
   create_duration = "90s"
 }
 
-# Executa um script local para inicializar o banco de dados
 resource "terraform_data" "init_db" {
   depends_on = [aws_db_instance.db_ecommerce, time_sleep.wait_for_db]
 
