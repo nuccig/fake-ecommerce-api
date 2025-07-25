@@ -1,7 +1,8 @@
 from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 
-from .api.routes import api_router
+from api.src.api.routes.api_router import api_router
+
 from .core.config import settings
 
 app = FastAPI(

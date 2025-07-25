@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv  # type: ignore
 from pydantic_settings import BaseSettings  # type: ignore
 
-load_dotenv()
+load_dotenv(".env")
 
 
 class Settings(BaseSettings):
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"
 
 
 settings = Settings()
