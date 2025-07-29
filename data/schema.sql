@@ -1,6 +1,4 @@
 -- schema_mysql.sql - E-commerce Simplificado
-DROP TABLE IF EXISTS itens_carrinho;
-DROP TABLE IF EXISTS carrinho;
 DROP TABLE IF EXISTS itens_venda;
 DROP TABLE IF EXISTS vendas;
 DROP TABLE IF EXISTS produtos;
@@ -75,25 +73,6 @@ CREATE TABLE IF NOT EXISTS produtos (
     SET NULL,
         FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id) ON DELETE
     SET NULL
-);
--- Tabela de Carrinho
-CREATE TABLE IF NOT EXISTS carrinho (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cliente_id INT NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
-);
--- Tabela de Itens do Carrinho
-CREATE TABLE IF NOT EXISTS itens_carrinho (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    carrinho_id INT NOT NULL,
-    produto_id INT NOT NULL,
-    quantidade INT NOT NULL DEFAULT 1,
-    preco_unitario DECIMAL(10, 2) NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (carrinho_id) REFERENCES carrinho(id) ON DELETE CASCADE,
-    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
 );
 -- Tabela de Vendas
 CREATE TABLE IF NOT EXISTS vendas (

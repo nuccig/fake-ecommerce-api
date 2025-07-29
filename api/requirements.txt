@@ -1,6 +1,8 @@
 annotated-types==0.7.0
 anyio==4.9.0
 click==8.2.1
+dnspython==2.7.0
+email_validator==2.2.0
 fastapi==0.116.1
 greenlet==3.2.3
 h11==0.16.0
@@ -8,6 +10,7 @@ idna==3.10
 mysql-connector-python==9.3.0
 psycopg==3.2.9
 pydantic==2.11.7
+pydantic-settings==2.10.1
 pydantic_core==2.33.2
 PyMySQL==1.1.0
 python-dotenv==1.1.1
