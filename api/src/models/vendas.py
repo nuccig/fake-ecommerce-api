@@ -6,10 +6,10 @@ from sqlalchemy import (  # type: ignore
     TIMESTAMP,
     Column,
     Date,
-    Decimal,
     Enum,
     ForeignKey,
     Integer,
+    Numeric,
     func,
 )
 from sqlalchemy.orm import relationship  # type: ignore
@@ -22,19 +22,19 @@ class Venda(SQLAlchemyBase):
     __tablename__ = "vendas"
 
     cliente_id = Column(
-        Integer, ForeignKey("clientes.id"), nullable=False, ondelete="CASCADE"
+        Integer, ForeignKey("clientes.id", ondelete="CASCADE"), nullable=False
     )
     endereco_entrega_id = Column(
-        Integer, ForeignKey("enderecos.id"), nullable=True, ondelete="SET NULL"
+        Integer, ForeignKey("enderecos.id", ondelete="SET NULL"), nullable=True
     )
     status = Column(
         Enum("Pendente", "Confirmado", "Enviado", "Entregue", "Cancelado"),
         nullable=False,
         default="Pendente",
     )
-    subtotal = Column(Decimal(10, 2), nullable=False)
-    frete = Column(Decimal(10, 2), nullable=False, default=0.00)
-    total = Column(Decimal(10, 2), nullable=False)
+    subtotal = Column(Numeric(10, 2), nullable=False)
+    frete = Column(Numeric(10, 2), nullable=False, default=0.00)
+    total = Column(Numeric(10, 2), nullable=False)
     metodo_pagamento = Column(
         Enum("Cartao_Credito", "Cartao_Debito", "PIX", "Boleto"), nullable=False
     )
@@ -44,9 +44,9 @@ class Venda(SQLAlchemyBase):
     data_venda = Column(TIMESTAMP, default=func.current_timestamp())
     data_entrega_prevista = Column(Date, nullable=True)
 
-    clientes = relationship("Cliente", back_populates="vendas")
-    enderecos = relationship("Endereco", back_populates="vendas")
-    itens_vendas = relationship("ItensVendas", back_populates="venda")
+    cliente = relationship("Cliente", back_populates="vendas")
+    endereco = relationship("Endereco", back_populates="vendas")
+    itens_venda = relationship("ItensVendas", back_populates="venda")
 
     def __repr__(self):
         return f"<Venda(id={self.id}, cliente_id={self.cliente_id}, status='{self.status}')>"
@@ -87,7 +87,7 @@ class VendaUpdate(VendaBase):
 
 class VendaResponse(VendaBase):
     id: int
-    criado_em: datetime
+    data_venda: datetime
 
     class Config:
         from_attributes = True

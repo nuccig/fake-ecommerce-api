@@ -21,7 +21,6 @@ class Cliente(SQLAlchemyBase):
     genero = Column(Enum("M", "F", "Outro"), default="Outro")
     criado_em = Column(TIMESTAMP, default=func.current_timestamp())
 
-    carrinhos = relationship("Carrinho", back_populates="cliente")
     enderecos = relationship("Endereco", back_populates="cliente")
     vendas = relationship("Venda", back_populates="cliente")
 
@@ -37,7 +36,7 @@ class ClienteBase(BaseModel):
     telefone: Optional[str] = None
     cpf: Optional[str] = None
     data_nascimento: Optional[date] = None
-    genero: Optional[List[Literal["M", "F", "Outro"]]] = None
+    genero: Optional[Literal["M", "F", "Outro"]] = None
 
     @validator("cpf")
     def validate_cpf(cls, v):
@@ -50,12 +49,6 @@ class ClienteBase(BaseModel):
         if v and v > date.today():
             raise ValueError("Data de nascimento não pode ser no futuro")
         return v
-
-    @validator("estado")
-    def validate_estado(cls, v):
-        if v and len(v) != 2:
-            raise ValueError("Estado deve ter 2 caracteres")
-        return v.upper() if v else v
 
 
 class ClienteCreate(ClienteBase):

@@ -1,13 +1,10 @@
-from datetime import date, datetime
-from typing import List, Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, validator  # type: ignore
 from sqlalchemy import (  # type: ignore
     TIMESTAMP,
     Boolean,
     Column,
-    Date,
-    Enum,
     ForeignKey,
     Integer,
     String,
@@ -23,7 +20,7 @@ class Endereco(SQLAlchemyBase):
     __tablename__ = "enderecos"
 
     cliente_id = Column(
-        Integer, ForeignKey("clientes.id"), nullable=False, ondelete="CASCADE"
+        Integer, ForeignKey("clientes.id", ondelete="CASCADE"), nullable=False
     )
     cep = Column(String(10), nullable=False)
     logradouro = Column(String(200), nullable=False)
@@ -35,8 +32,8 @@ class Endereco(SQLAlchemyBase):
     endereco_principal = Column(Boolean, default=False)
     criado_em = Column(TIMESTAMP, default=func.current_timestamp())
 
-    clientes = relationship("Cliente", back_populates="enderecos")
-    vendas = relationship("Venda", back_populates="enderecos")
+    cliente = relationship("Cliente", back_populates="enderecos")
+    vendas = relationship("Venda", back_populates="endereco")
 
     def __repr__(self):
         return f"<Endereco(id={self.id}, logradouro='{self.logradouro}', numero='{self.numero}', cep='{self.cep}')>"

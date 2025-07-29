@@ -14,7 +14,7 @@ class Categoria(SQLAlchemyBase):
 
     nome = Column(String(100), nullable=False)
     descricao = Column(Text, nullable=False)
-    ativo = Column(Boolean, default=True)
+    ativa = Column(Boolean, default=True)
     criado_em = Column(TIMESTAMP, default=func.current_timestamp())
 
     produtos = relationship("Produto", back_populates="categoria")
@@ -24,20 +24,20 @@ class Categoria(SQLAlchemyBase):
 
     @property
     def is_active(self):
-        return self.ativo
+        return self.ativa
 
     def activate(self):
-        self.ativo = True
+        self.ativa = True
 
     def deactivate(self):
-        self.ativo = False
+        self.ativa = False
 
 
 # Pydantic Schemas
 class CategoriaBase(BaseModel):
     nome: str
     descricao: str
-    ativo: bool = True
+    ativa: bool = True
 
 
 class CategoriaCreate(CategoriaBase):
@@ -46,7 +46,7 @@ class CategoriaCreate(CategoriaBase):
 
 class CategoriaUpdate(BaseModel):
     descricao: Optional[str] = None
-    ativo: Optional[bool] = None
+    ativa: Optional[bool] = None
 
 
 class CategoriaResponse(CategoriaBase):
