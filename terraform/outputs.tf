@@ -5,7 +5,7 @@ output "host_db" {
 
 output "url_api" {
   description = "URL da API"
-  value       = "https://${aws_api_gateway_rest_api.fake-ecommerce-api.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.prod.stage_name}/${aws_api_gateway_resource.fake-ecommerce-api-resource.path_part}"
+  value       = "https://${aws_api_gateway_rest_api.fake-ecommerce-api.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.dev.stage_name}/${aws_api_gateway_resource.proxy.path_part}"
 }
 
 output "arn_api_gateway" {

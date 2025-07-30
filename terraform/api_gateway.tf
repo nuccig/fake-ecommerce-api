@@ -3,23 +3,12 @@ resource "aws_api_gateway_rest_api" "fake-ecommerce-api" {
   description = "API com dados simulados de um e-commerce"
 }
 
-resource "aws_api_gateway_resource" "fake-ecommerce-api-resource" {
-  rest_api_id = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  parent_id   = aws_api_gateway_rest_api.fake-ecommerce-api.root_resource_id
-  path_part   = "fake-ecommerce"
-}
-
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  parent_id   = aws_api_gateway_resource.fake-ecommerce-api-resource.id
+  parent_id   = aws_api_gateway_rest_api.fake-ecommerce-api.root_resource_id
   path_part   = "{proxy+}"
-}
 
-resource "aws_api_gateway_method" "fake-ecommerce-api-method" {
-  rest_api_id   = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  resource_id   = aws_api_gateway_resource.fake-ecommerce-api-resource.id
-  http_method   = "ANY"
-  authorization = "NONE"
+  depends_on = [aws_api_gateway_rest_api.fake-ecommerce-api]
 }
 
 resource "aws_api_gateway_method" "proxy_method" {
@@ -29,21 +18,12 @@ resource "aws_api_gateway_method" "proxy_method" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "ec2_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  resource_id             = aws_api_gateway_resource.fake-ecommerce-api-resource.id
-  http_method             = aws_api_gateway_method.fake-ecommerce-api-method.http_method
-  type                    = "HTTP"
-  uri                     = "http://${aws_instance.api_server.public_dns}:8000/"
-  integration_http_method = "ANY"
-}
-
 resource "aws_api_gateway_integration" "ec2_integration_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.fake-ecommerce-api.id
   resource_id             = aws_api_gateway_resource.proxy.id
   http_method             = aws_api_gateway_method.proxy_method.http_method
   type                    = "HTTP_PROXY"
-  uri                     = "http://${aws_instance.api_server.public_dns}:8000/{proxy+}"
+  uri                     = "http://${aws_instance.api_server.public_dns}:8000/{proxy}"
   integration_http_method = "ANY"
 }
 
@@ -51,16 +31,14 @@ resource "aws_api_gateway_deployment" "fake-ecommerce-api-deployment" {
   rest_api_id = aws_api_gateway_rest_api.fake-ecommerce-api.id
 
   depends_on = [
-    aws_api_gateway_integration.ec2_integration,
-    aws_api_gateway_method.fake-ecommerce-api-method,
     aws_api_gateway_method.proxy_method
   ]
 }
 
-resource "aws_api_gateway_stage" "prod" {
+resource "aws_api_gateway_stage" "dev" {
   deployment_id = aws_api_gateway_deployment.fake-ecommerce-api-deployment.id
   rest_api_id   = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  stage_name    = "prod"
+  stage_name    = "dev"
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gw_logs.arn
