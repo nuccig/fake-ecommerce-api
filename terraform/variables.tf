@@ -11,3 +11,15 @@ variable "db_name" {
   type        = string
   default     = "ecommerce"
 }
+
+variable "aws_region" {
+  description = "Região da AWS"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "aws_account_id" {
+  description = "ID da conta da AWS"
+  type        = string
+  default     = "551715065713"
+}

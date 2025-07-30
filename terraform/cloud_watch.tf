@@ -20,11 +20,16 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
   source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
 }
 
-resource "aws_cloudwatch_log_group" "lambda_logs" {
+resource "aws_cloudwatch_log_group" "lambda_logs_update_data" {
   name              = "/aws/lambda/lambda_update_data"
   retention_in_days = 14
 
   tags = {
     Application = "lambda_update_data"
   }
+}
+
+resource "aws_cloudwatch_log_group" "api_gw_logs" {
+  name              = "/aws/api-gateway/fake-ecommerce-api"
+  retention_in_days = 7
 }

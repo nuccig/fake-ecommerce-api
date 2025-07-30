@@ -76,3 +76,38 @@ resource "aws_security_group" "rds" {
     Name = "ecommerce-rds-sg"
   }
 }
+
+########################
+# Security Groups EC2
+########################
+
+resource "aws_security_group" "ec2" {
+  name_prefix = "ecommerce-ec2-"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
+  }
+
+  #Permite saída para qualquer lugar em todos protocolos
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-api-sg"
+  }
+}

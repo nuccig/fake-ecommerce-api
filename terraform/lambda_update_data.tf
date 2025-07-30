@@ -1,6 +1,6 @@
 data "archive_file" "lambda_update_data" {
   type        = "zip"
-  source_dir  = "${path.module}/../lambda/package"
+  source_dir  = "${path.module}/../lambda/package-update-data"
   output_path = "${path.module}/../lambda/update_data.zip"
 
   depends_on = [terraform_data.lambda_dependencies]
@@ -9,13 +9,13 @@ data "archive_file" "lambda_update_data" {
 resource "terraform_data" "lambda_dependencies" {
 
   triggers_replace = {
-    requirements = filemd5("${path.module}/../lambda/requirements.txt")
-    source_code  = filemd5("${path.module}/../lambda/update_data.py")
+    requirements = filemd5("${path.module}/../data/requirements.txt")
+    source_code  = filemd5("${path.module}/../data/update_data.py")
   }
 
   provisioner "local-exec" {
     working_dir = "${path.module}/../lambda"
-    command     = "rm -rf package && mkdir -p package && pip install -r requirements.txt -t package/ && cp update_data.py package/ && cp ../terraform/db_host.txt package/"
+    command     = "rm -rf package-update-data && mkdir -p package-update-data && pip install -r ../data/requirements.txt -t package-update-data/ && cp ../data/update_data.py package-update-data/ && cp ../terraform/db_host.txt package-update-data/"
   }
 }
 
@@ -47,9 +47,9 @@ resource "aws_lambda_function" "lambda_update_data" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs,
-    aws_iam_role_policy_attachment.lambda_vpc,
-    aws_cloudwatch_log_group.lambda_logs
+    aws_iam_role_policy_attachment.lambda_logs_update_data,
+    aws_iam_role_policy_attachment.lambda_vpc_update_data,
+    aws_cloudwatch_log_group.lambda_logs_update_data
   ]
 
   tags = {
