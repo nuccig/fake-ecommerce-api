@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, validator  # type: ignore
+from pydantic import BaseModel, validator  # type: ignore
 from sqlalchemy import (  # type: ignore
     TIMESTAMP,
     Boolean,

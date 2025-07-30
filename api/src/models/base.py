@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, func  # type: ignore
+from sqlalchemy import Column, Integer  # type: ignore
 from sqlalchemy.ext.declarative import declarative_base  # type: ignore
 
 Base = declarative_base()

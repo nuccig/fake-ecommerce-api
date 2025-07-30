@@ -1,9 +1,6 @@
 import os
 
-from dotenv import load_dotenv  # type: ignore
 from pydantic_settings import BaseSettings  # type: ignore
-
-load_dotenv(".env")
 
 
 class Settings(BaseSettings):

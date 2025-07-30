@@ -1,8 +1,8 @@
+import uvicorn  # type: ignore
 from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 
-from api.src.api.routes.api_router import api_router
-
+from .api.routes.api_router import api_router
 from .core.config import settings
 
 app = FastAPI(
@@ -21,7 +21,7 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-if __name__ == "__main__":
-    import uvicorn  # type: ignore
+# if __name__ == "__main__":
+#     import uvicorn  # type: ignore
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+#     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
