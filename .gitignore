@@ -211,6 +211,7 @@ __marimo__/
 
 *plan.out
 db_host.txt
-lambda/package/*
+lambda/package*
 update_data.zip
+archive/**
 .vscode
