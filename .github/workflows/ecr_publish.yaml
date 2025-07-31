@@ -82,6 +82,7 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "
             docker pull $REGISTRY/$REPOSITORY:latest &&
             docker stop fake-ecommerce-api || true &&
+            sleep 2 &&
             docker rm fake-ecommerce-api || true &&
             docker run -d --name fake-ecommerce-api -p 8000:8000 \
               -e DB_USER=${{ secrets.DB_USER }} \
