@@ -39,7 +39,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/minha-keypair-ec2.pub
           chmod 644 ~/.ssh/minha-keypair-ec2.pub
-          export TF_VAR_db_access='${{ secrets.TF_VAR_DB_ACCESS }}'
             
       - name: Initialize Terraform
         run: terraform init
@@ -52,7 +51,11 @@ jobs:
       - name: Plan Terraform changes
         run: terraform plan
         working-directory: terraform
+        env:
+          TF_VAR_db_access: ${{ secrets.TF_VAR_DB_ACCESS }}
 
       - name: Apply Terraform changes
         run: terraform apply -auto-approve
         working-directory: terraform
+        env:
+          TF_VAR_db_access: ${{ secrets.TF_VAR_DB_ACCESS }}
