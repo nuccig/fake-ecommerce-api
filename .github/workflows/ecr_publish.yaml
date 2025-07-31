@@ -43,6 +43,7 @@ jobs:
           registry-type: public
 
       - name: Build, tag, and push docker image to Amazon ECR Public
+        working-directory: ./api
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
           REPOSITORY: fake-ecommerce-api
@@ -76,4 +77,4 @@ jobs:
           REPOSITORY: fake-ecommerce-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "docker pull $REGISTRY/$REPOSITORY:latest && docker stop fake-ecommerce-api || true && docker rm fake-ecommerce-api || true && docker run -d --name fake-ecommerce-api -p 8000:8000 $REGISTRY/$REPOSITORY:latest"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "docker pull $REGISTRY/$REPOSITORY:latest && docker stop fake-ecommerce-api || true && docker rm fake-ecommerce-api || true && docker run -d --name fake-ecommerce-api -p 8000:8000 -e DB_USER=${{ secrets.DB_USER }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} $REGISTRY/$REPOSITORY:latest"
