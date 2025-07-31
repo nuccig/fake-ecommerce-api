@@ -49,8 +49,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-pip
           mkdir -p lambda/package-update-data
-          pip3 install -r data/requirements.txt -t lambda/package-update-data/
-          cp data/update_data.py lambda/package-update-data/
             
       - name: Initialize Terraform
         run: terraform init
