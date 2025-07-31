@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+    - "terraform/**"
   pull_request:
     branches:
       - main
+    paths:
+      - "terraform/**"
   workflow_dispatch:
+
 
 jobs:
   terraform:
@@ -16,20 +21,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+        
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.12.0
-
+            terraform_version: 1.12.0
+            
       - name: Initialize Terraform
         run: terraform init
+        working-directory: terraform
 
       - name: Validate Terraform configuration
         run: terraform validate
+        working-directory: terraform
 
       - name: Plan Terraform changes
         run: terraform plan
+        working-directory: terraform
 
       - name: Apply Terraform changes
         run: terraform apply -auto-approve
+        working-directory: terraform
