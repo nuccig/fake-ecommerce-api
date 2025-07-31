@@ -15,8 +15,11 @@ on:
 
 
 jobs:
-  terraform:
+  ecr-push:
     runs-on: ubuntu-latest
+
+    outputs:
+      registry: ${{ steps.login-ecr-public.outputs.registry }}
 
     steps:
       - name: Checkout code
@@ -42,14 +45,17 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR Public
         env:
           REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
-          REGISTRY_ALIAS: fake-ecommerce-api:v1
-          REPOSITORY: fake-ecommerce-api:v1 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/fake-ecommerce-api:latest
+          REPOSITORY: fake-ecommerce-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
-      
+  
+  update-ec2-app:
+    runs-on: ubuntu-latest
+    needs: ecr-push
+    steps:
       - name: Adiciona chave SSH
         run: |
           mkdir -p ~/.ssh
@@ -65,5 +71,9 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "echo 'SSH validado realizado com sucesso!'"
 
       - name: Docker update container
+        env:
+          REGISTRY: ${{ needs.ecr-push.outputs.registry }}
+          REPOSITORY: fake-ecommerce-api
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "docker pull $REGISTRY/$REPOSITORY:latest && docker stop fake-ecommerce-api || true && docker rm fake-ecommerce-api || true && docker run -d --name fake-ecommerce-api -p 8000:8000 $REGISTRY/$REPOSITORY:latest"
