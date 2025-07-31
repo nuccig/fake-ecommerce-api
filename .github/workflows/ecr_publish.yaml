@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths:
-    - "api/**"
+    # paths:
+    # - "api/**"
   pull_request:
     branches:
       - main
@@ -36,16 +36,15 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Amazon ECR
-        id: login-ecr-public
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: 'true'
-          registry-type: public
 
-      - name: Build, tag, and push docker image to Amazon ECR Public
+      - name: Build, tag, and push docker image to Amazon ECR
         working-directory: ./api
         env:
-          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: fake-ecommerce-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
