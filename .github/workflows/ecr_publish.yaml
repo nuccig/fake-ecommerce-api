@@ -17,10 +17,8 @@ on:
 jobs:
   ecr-push:
     runs-on: ubuntu-latest
-
     outputs:
-      registry: ${{ steps.login-ecr-public.outputs.registry }}
-
+      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,10 +67,6 @@ jobs:
       - name: Valida ssh no remoto na EC2 Ubuntu
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "echo 'SSH validado realizado com sucesso!'"
-      
-      - name: Verifica os containers em execução
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "docker ps -a"
 
       - name: Docker update container
         env:
@@ -80,13 +74,22 @@ jobs:
           REPOSITORY: fake-ecommerce-api
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "
+            echo 'Iniciando atualização do container...' &&
+            docker images &&
             docker pull $REGISTRY/$REPOSITORY:latest &&
-            docker stop fake-ecommerce-api || true &&
+            echo 'Container atualizado com sucesso!' &&
+            docker images &&
+            echo 'Parando e removendo container antigo...' &&
+            docker stop fake-ecommerce-api &&
             sleep 2 &&
+            echo 'Verificando containers existentes...' &&
             docker ps -a &&
-            docker rm fake-ecommerce-api || true &&
+            docker rm fake-ecommerce-api &&
+            echo 'Iniciando novo container...' &&
             docker run -d --name fake-ecommerce-api -p 8000:8000 \
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              $REGISTRY/$REPOSITORY:latest
+              $REGISTRY/$REPOSITORY:latest &&
+            echo 'Novo container iniciado com sucesso!' &&
+            docker ps -a
           "
