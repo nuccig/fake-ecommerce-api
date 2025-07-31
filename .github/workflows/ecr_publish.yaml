@@ -1,0 +1,69 @@
+name: Update app workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+    - "api/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "api/**"
+  workflow_dispatch:
+
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'true'
+          registry-type: public
+
+      - name: Build, tag, and push docker image to Amazon ECR Public
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY_ALIAS: fake-ecommerce-api:v1
+          REPOSITORY: fake-ecommerce-api:v1 ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/fake-ecommerce-api:latest
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker push $REGISTRY/$REPOSITORY:latest
+      
+      - name: Adiciona chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Adiciona host à lista de conhecidos
+        run: |
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+
+      - name: Valida ssh no remoto na EC2 Ubuntu
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "echo 'SSH validado realizado com sucesso!'"
+
+      - name: Docker update container
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }}.sa-east-1.compute.amazonaws.com "docker pull $REGISTRY/$REPOSITORY:latest && docker stop fake-ecommerce-api || true && docker rm fake-ecommerce-api || true && docker run -d --name fake-ecommerce-api -p 8000:8000 $REGISTRY/$REPOSITORY:latest"
