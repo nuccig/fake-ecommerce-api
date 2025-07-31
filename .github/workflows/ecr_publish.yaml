@@ -67,38 +67,23 @@ jobs:
       - name: Valida ssh no remoto na EC2 Ubuntu
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "echo 'SSH validado realizado com sucesso!'"
-      
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
-      
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          mask-password: 'true'
 
       - name: Docker update container
         env:
           REGISTRY: ${{ needs.ecr-push.outputs.registry }}
           REPOSITORY: fake-ecommerce-api
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_DNS }} "
-            echo 'Iniciando atualização do container...' &&
-            docker images &&
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            export AWS_REGION=$AWS_REGION
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REGISTRY &&
             docker pull $REGISTRY/$REPOSITORY:latest &&
-            echo 'Container atualizado com sucesso!' &&
-            docker images &&
-            echo 'Parando e removendo container antigo...' &&
-            docker stop fake-ecommerce-api &&
-            sleep 2 &&
-            echo 'Verificando containers existentes...' &&
-            docker ps -a &&
-            docker rm fake-ecommerce-api &&
-            echo 'Iniciando novo container...' &&
+            docker stop fake-ecommerce-api || true && sleep 2 &&
+            docker rm fake-ecommerce-api || true &&
             docker run -d --name fake-ecommerce-api -p 8000:8000 \
               -e DB_USER=${{ secrets.DB_USER }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
