@@ -9,10 +9,10 @@ from .produtos import router as produtos_router
 from .vendas import router as vendas_router
 
 api_router = APIRouter()
-api_router.include_router(health_router, prefix="/api/v1")
-api_router.include_router(categorias_router, prefix="/api/v1")
-api_router.include_router(clientes_router, prefix="/api/v1")
-api_router.include_router(enderecos_router, prefix="/api/v1")
-api_router.include_router(fornecedores_router, prefix="/api/v1")
-api_router.include_router(produtos_router, prefix="/api/v1")
-api_router.include_router(vendas_router, prefix="/api/v1")
+api_router.include_router(health_router, prefix="/ecomm/v1")
+api_router.include_router(categorias_router, prefix="/ecomm/v1")
+api_router.include_router(clientes_router, prefix="/ecomm/v1")
+api_router.include_router(enderecos_router, prefix="/ecomm/v1")
+api_router.include_router(fornecedores_router, prefix="/ecomm/v1")
+api_router.include_router(produtos_router, prefix="/ecomm/v1")
+api_router.include_router(vendas_router, prefix="/ecomm/v1")

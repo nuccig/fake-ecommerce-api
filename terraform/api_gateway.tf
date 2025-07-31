@@ -16,15 +16,27 @@ resource "aws_api_gateway_method" "proxy_method" {
   resource_id   = aws_api_gateway_resource.proxy.id
   http_method   = "ANY"
   authorization = "NONE"
+
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+
 }
 
 resource "aws_api_gateway_integration" "ec2_integration_proxy" {
-  rest_api_id             = aws_api_gateway_rest_api.fake-ecommerce-api.id
-  resource_id             = aws_api_gateway_resource.proxy.id
-  http_method             = aws_api_gateway_method.proxy_method.http_method
-  type                    = "HTTP_PROXY"
-  uri                     = "http://${aws_instance.api_server.public_dns}:8000/{proxy}"
+  rest_api_id = aws_api_gateway_rest_api.fake-ecommerce-api.id
+  resource_id = aws_api_gateway_resource.proxy.id
+  http_method = aws_api_gateway_method.proxy_method.http_method
+  type        = "HTTP_PROXY"
+
+  uri = "http://${aws_instance.api_server.public_dns}:8000/{proxy}"
+
   integration_http_method = "ANY"
+
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+  }
+
 }
 
 resource "aws_api_gateway_deployment" "fake-ecommerce-api-deployment" {
@@ -49,6 +61,8 @@ resource "aws_api_gateway_stage" "dev" {
       user           = "$context.identity.user"
       requestTime    = "$context.requestTime"
       httpMethod     = "$context.httpMethod"
+      path           = "$context.path"
+      proxy          = "$context.proxy"
       resourcePath   = "$context.resourcePath"
       status         = "$context.status"
       protocol       = "$context.protocol"
