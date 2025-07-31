@@ -83,6 +83,7 @@ jobs:
             docker pull $REGISTRY/$REPOSITORY:latest &&
             docker stop fake-ecommerce-api || true &&
             sleep 2 &&
+            docker ps -a &&
             docker rm fake-ecommerce-api || true &&
             docker run -d --name fake-ecommerce-api -p 8000:8000 \
               -e DB_USER=${{ secrets.DB_USER }} \
