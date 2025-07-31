@@ -6,11 +6,15 @@ on:
       - main
     paths:
     - "terraform/**"
+    - 'lambda/**'
+    - 'data/**'
   pull_request:
     branches:
       - main
     paths:
       - "terraform/**"
+      - 'lambda/**'
+      - 'data/**'
   workflow_dispatch:
 
 
@@ -39,6 +43,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/minha-keypair-ec2.pub
           chmod 644 ~/.ssh/minha-keypair-ec2.pub
+
+      - name: Instala dependências Python para Lambda
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          mkdir -p lambda/package-update-data
+          pip3 install -r data/requirements.txt -t lambda/package-update-data/
+          cp data/update_data.py lambda/package-update-data/
             
       - name: Initialize Terraform
         run: terraform init
