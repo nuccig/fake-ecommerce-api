@@ -43,7 +43,8 @@ resource "aws_api_gateway_deployment" "fake-ecommerce-api-deployment" {
   rest_api_id = aws_api_gateway_rest_api.fake-ecommerce-api.id
 
   depends_on = [
-    aws_api_gateway_method.proxy_method
+    aws_api_gateway_method.proxy_method,
+    aws_api_gateway_integration.ec2_integration_proxy
   ]
 }
 
@@ -72,6 +73,5 @@ resource "aws_api_gateway_stage" "dev" {
 
   xray_tracing_enabled = false
 
-  depends_on = [aws_api_gateway_account.account]
-
+  depends_on = [aws_api_gateway_account.account, aws_api_gateway_integration.ec2_integration_proxy]
 }
