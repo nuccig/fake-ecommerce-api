@@ -34,11 +34,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
     
-      - name: Creating ssh public key
+      - name: Adding credentials to run
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/minha-keypair-ec2.pub
           chmod 644 ~/.ssh/minha-keypair-ec2.pub
+          export TF_VAR_DB_ACCESS=${{ secrets.TF_VAR_DB_ACCESS }}
             
       - name: Initialize Terraform
         run: terraform init
