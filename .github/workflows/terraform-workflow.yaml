@@ -33,6 +33,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+    
+      - name: Creating ssh public key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/minha-keypair-ec2.pub
+          chmod 644 ~/.ssh/minha-keypair-ec2.pub
             
       - name: Initialize Terraform
         run: terraform init
