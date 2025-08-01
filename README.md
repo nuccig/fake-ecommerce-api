@@ -57,12 +57,12 @@ fake-ecommerce-api/
 ├── README.md                    # Documentação do projeto
 ├── app/                         # Código fonte da aplicação
 │   └── src/
-       ├──main.py                # Aplicação FastAPI principal
-       ├──core                   # Configurações da API
-       ├──models                 # Modelagem dos objetos da API (SQLAlchemy) e Schemas Pydantic
-       ├──services               # Serviços vinculados à API (como healthcheck)
-       └── api
-          └─ routes              # As rotas da API
+│      ├──main.py                # Aplicação FastAPI principal
+│      ├──core                   # Configurações da API
+│      ├──models                 # Modelagem dos objetos da API (SQLAlchemy) e Schemas Pydantic
+│      ├──services               # Serviços vinculados à API (como healthcheck)
+│      └── api
+│         └─ routes              # As rotas da API
 ├── terraform/                   # Infraestrutura como código
 │   ├── main.tf                  # Configuração principal
 │   ├── providers.tf             # Provedores AWS
