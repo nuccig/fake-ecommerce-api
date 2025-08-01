@@ -19,7 +19,8 @@ Lambda função executada diariamente às 03:00 UTC que regenera todos os dados 
 
 ### 🛍️ API REST Completa
 API FastAPI com endpoints completos para gestão de produtos, clientes, fornecedores, vendas e categorias. Documentação interativa via Swagger e dados realistas para desenvolvimento e aprendizado.
-A api está disponível em diferentes endpoints na URL https://api.gustavonucci.dev/ecomm/v1
+
+A api está disponível em diferentes endpoints na URL: `https://api.gustavonucci.dev/ecomm/v1`
 Os endpoints da API estão disponíveis no [swagger](https://api.gustavonucci.dev/docs)
 
 *📖 Documentação detalhada: [api/README.md](api/README.md)*
