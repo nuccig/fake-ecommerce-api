@@ -75,3 +75,19 @@ resource "aws_api_gateway_stage" "dev" {
 
   depends_on = [aws_api_gateway_account.account, aws_api_gateway_integration.ec2_integration_proxy]
 }
+
+resource "aws_api_gateway_domain_name" "meu_dominio_personalizado" {
+  domain_name     = data.aws_acm_certificate.meu_dominio_cert.domain
+  certificate_arn = data.aws_acm_certificate.meu_dominio_cert.arn
+
+  endpoint_configuration {
+    types = ["EDGE"]
+  }
+}
+
+resource "aws_api_gateway_base_path_mapping" "meu_mapeamento" {
+  api_id      = aws_api_gateway_rest_api.fake-ecommerce-api.id
+  stage_name  = aws_api_gateway_stage.dev.stage_name
+  domain_name = aws_api_gateway_domain_name.meu_dominio_personalizado.domain_name
+}
+

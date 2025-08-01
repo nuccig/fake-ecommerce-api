@@ -25,3 +25,13 @@ output "ec2_address" {
   description = "Endereço público da instância EC2"
   value       = aws_instance.api_server.public_dns
 }
+
+output "api_gateway_target_domain" {
+  description = "Domínio de destino do API Gateway"
+  value       = aws_api_gateway_domain_name.meu_dominio_personalizado.cloudfront_domain_name
+}
+
+output "api_gateway_domain_name" {
+  description = "Domínio do API Gateway."
+  value       = aws_api_gateway_domain_name.meu_dominio_personalizado.domain_name
+}
