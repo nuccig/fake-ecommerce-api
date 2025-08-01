@@ -23,3 +23,5 @@
   - Elimina necessidade de popular dados manualmente
   - Garante variedade nos dados para diferentes cenários
   - Simula ambiente real com dados em constante mudança
+
+<img width="1343" height="1088" alt="Fake API ecommerce (1)" src="https://github.com/user-attachments/assets/7535c11b-38bc-4d60-b4b6-37e30e40e902" />
