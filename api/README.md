@@ -72,3 +72,6 @@ Os endpoints da API estão disponíveis no [swagger](https://api.gustavonucci.de
 - `GET /docs` - Interface Swagger UI
 - `GET /redoc` - Documentação ReDoc
 - `GET /openapi.json` - Schema OpenAPI
+
+## Database Schema
+<img width="1343" height="1088" alt="Fake API ecommerce (1)" src="https://github.com/user-attachments/assets/92533b96-e8c2-4fb4-a735-d598061e8063" /> 
