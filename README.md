@@ -5,6 +5,8 @@ API REST completa para e-commerce fake com infraestrutura na AWS totalmente auto
 
 **🎯 Objetivo do Projeto**: Fornecer uma API com dados fictícios dinâmicos para estudos e desenvolvimento, com atualização automática diária dos dados via Lambda. A API está disponível publicamente para ser utilizada em projetos de estudo, testes de integração, prototipagem e aprendizado de consumo de APIs REST, eliminando a necessidade de configurar um backend completo para experimentos ou de usar dados estáticos.
 
+![Imagem do WhatsApp de 2025-08-01 à(s) 12 15 44_f79b5449](https://github.com/user-attachments/assets/e7731b74-b940-4497-8e97-5d049f383d1f)
+
 ## ⚡ Funcionalidades
 
 ### 🏗️ Infraestrutura como Código
