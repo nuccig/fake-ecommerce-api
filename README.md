@@ -29,8 +29,6 @@ Os endpoints da API estão disponíveis no [swagger](https://api.gustavonucci.de
 
 ## 🚀 Tecnologias Utilizadas
 
-## 🚀 Tecnologias Utilizadas
-
 ### 🐍 Backend & API
 - **FastAPI** - Framework web moderno para Python
 - **SQLAlchemy** - ORM para Python com MySQL
@@ -94,3 +92,4 @@ fake-ecommerce-api/
 ## 🤝 Contribuição
 
 Fique a vontade para contribuir com o projeto, abra sua Issue ou PR para discutirmos sobre!
+
