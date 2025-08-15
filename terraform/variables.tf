@@ -23,3 +23,9 @@ variable "aws_account_id" {
   type        = string
   default     = "551715065713"
 }
+
+variable "myip" {
+  description = "Meu IP pessoal"
+  type        = string
+  default     = "179.175.250.171"
+}

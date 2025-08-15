@@ -39,11 +39,6 @@ resource "aws_security_group" "lambda_sg" {
 # Security Groups RDS
 ########################
 
-# Obter seu IP atual
-data "http" "myip" {
-  url = "http://ipv4.icanhazip.com"
-}
-
 data "aws_security_group" "airflow_ec2" {
   id = "sg-0455289c93a016f04"
 }
@@ -65,7 +60,7 @@ resource "aws_security_group" "rds" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
+    cidr_blocks = ["${var.myip}/32"]
   }
 
   ingress {
