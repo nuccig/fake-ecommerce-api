@@ -45,7 +45,7 @@ data "http" "myip" {
 }
 
 data "aws_security_group" "airflow_ec2" {
-  id = "sg-00080fc4e72ff131f"
+  id = "sg-0455289c93a016f04"
 }
 
 resource "aws_security_group" "rds" {
@@ -74,7 +74,6 @@ resource "aws_security_group" "rds" {
     protocol        = "tcp"
     security_groups = [data.aws_security_group.airflow_ec2.id]
   }
-
 
   #Permite saída para qualquer lugar em todos protocolos
   egress {
