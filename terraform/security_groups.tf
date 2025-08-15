@@ -44,6 +44,10 @@ data "http" "myip" {
   url = "http://ipv4.icanhazip.com"
 }
 
+data "aws_security_group" "airflow_ec2" {
+  id = "sg-00080fc4e72ff131f"
+}
+
 resource "aws_security_group" "rds" {
   name_prefix = "ecommerce-rds-"
   vpc_id      = aws_vpc.main.id
@@ -63,6 +67,14 @@ resource "aws_security_group" "rds" {
     protocol    = "tcp"
     cidr_blocks = ["${chomp(data.http.myip.response_body)}/32"]
   }
+
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [data.aws_security_group.airflow_ec2.id]
+  }
+
 
   #Permite saída para qualquer lugar em todos protocolos
   egress {
